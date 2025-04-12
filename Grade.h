@@ -5,8 +5,8 @@
 
 class Grade {
 public:
-    std::string assignmentName;
-    int mark;
+    std::string assignmentName;//Название предмета
+    int mark;//оценка
 
     Grade(std::string name, int m) : assignmentName(name), mark(m) {}
 
