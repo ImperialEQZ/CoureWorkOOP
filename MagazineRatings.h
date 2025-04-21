@@ -1,6 +1,6 @@
 #ifndef COURSEWORKOOP_MAGAZINERATINGS_H
 #define COURSEWORKOOP_MAGAZINERATINGS_H
-//пока что так, возможно доработка нужна будет
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -8,83 +8,124 @@
 #include <fstream>
 #include <sstream>
 
+// Структура для хранения информации о студенте
+struct StudentInfo {
+    std::string name;
+    std::string surname;
+    std::string middlename;
+};
+
 // Класс GradeBook предназначен для хранения и управления оценками студентов
 class GradeBook {
 private:
-    //Статический указатель для реализации паттерна "Одиночка"
     static GradeBook* gradeBookInstance;
-    // При создании экземпляра сразу вызывается метод initialize() для загрузки данных из файлов.
-    GradeBook() {
-        initialize();
-    }
+    GradeBook() { initialize(); }
 
 public:
-    /*markBook - это основная структура данных для хранения оценок.
-        1) название группы (string)
-        2) номер зачетной книжки студента (string).
-        3) Ключ третьего уровня - название предмета (string).
-        4) Значение - оценка студента по данному предмету (int).*/
-    std::map<std::string, std::map<std::string, std::map<std::string, int>>> markBook;
-//статический метод, который возвращает экземпляр класса GradeBook (для паттерна одиночки)
+    // Структура данных для хранения информации об оценках и студентах:
+    // groupName -> studentID -> (StudentInfo,  subject -> grade)
+    std::map<std::string, std::map<std::string, std::pair<StudentInfo, std::map<std::string, int>>>> markBook;
+
     static GradeBook* getInstance() {
         if (!gradeBookInstance) {
             gradeBookInstance = new GradeBook();
         }
         return gradeBookInstance;
     }
-    //это метод, который загружает данные об оценках из файла
+
     void initialize() {
-        //Открытие файла information/information about group.txt, в котором содержится информация о группах и студентах.
         std::ifstream inputFile("information/information about group.txt");
-        //Переменные для чтения данных из файла.
-        std::string instituteName, directionName, groupName, name, surName, middleName, creditCardID/*зачетка*/, grade, mark;
-        //Чтение данных из файла построчно
+        std::string instituteName, directionName, groupName, name, surName, middleName, creditCardID;
+
         while (inputFile >> instituteName >> directionName >> groupName >> name >> surName >> middleName >> creditCardID) {
-            //Создание пути к файлу с информацией об оценках для конкретной группы
             std::string filePath = "information about group/" + groupName + ".txt";
-            // Открываем файл с информацией об оценках.
             std::ifstream studentFile(filePath);
+
             if (!studentFile.is_open()) {
                 std::cerr << "Не удалось открыть файл для группы: " << groupName << std::endl;
-                //если не открыли файл - завершаем программу
                 exit(1);
             }
 
             std::string line;
             std::getline(studentFile, line);
-
             std::stringstream ss(line);
-            // Вектор для хранения названий предметов
             std::vector<std::string> grades;
             std::string gradeName;
-            // Читаем названия предметов из строки.
+
             while (ss >> gradeName) {
                 grades.push_back(gradeName);
             }
-            //Запись для группы, если ее еще нет
-            markBook[groupName][creditCardID] = {};
+
+            // Создаем запись о студенте.
+            StudentInfo studentInfo = {name, surName, middleName};
+            markBook[groupName][creditCardID].first = studentInfo;
+            markBook[groupName][creditCardID].second = {};  // Инициализируем map оценок
+
             while (studentFile >> creditCardID) {
-                //Для каждого предмета прохожусь
+                //для каждого студента в группе
+                StudentInfo studentInfo_local = {name, surName, middleName};
+                markBook[groupName][creditCardID].first = studentInfo_local;
+                markBook[groupName][creditCardID].second = {};
                 for (const auto& subj : grades) {
                     int analogMark;
-                    studentFile >> analogMark;//не придумал еще синонимы, читаю оценку
-                    markBook[groupName][creditCardID][subj] = analogMark;
+                    studentFile >> analogMark;
+                    markBook[groupName][creditCardID].second[subj] = analogMark;
                 }
             }
-            studentFile.close();//Закрытие файла с информацией об оценках для группы
+            studentFile.close();
         }
-        inputFile.close();//Закрытие файла со списком групп
+        inputFile.close();
     }
-    //на будущее, добавить в журнал оценку
+
     void addGrade(const std::string& groupName, const std::string& studentID, const std::string& subject, int mark) {
-        markBook[groupName][studentID][subject] = mark;
+        markBook[groupName][studentID].second[subject] = mark;
     }
-    //На будущее, изменить оценку
+
     void updateGrade(const std::string& groupName, const std::string& studentID, const std::string& subject, int newMark) {
-        markBook[groupName][studentID][subject] = newMark;
+        markBook[groupName][studentID].second[subject] = newMark;
+    }
+
+    double calculateAverageGrade(const std::string& groupName, const std::string& studentID) {
+        double sum = 0.0;
+        int count = 0;
+        const auto& studentGrades = markBook[groupName][studentID].second;
+        for (const auto& grade : studentGrades) {
+            sum += grade.second;
+            count++;
+        }
+        return count > 0 ? sum / count : 0.0;
+    }
+
+    StudentInfo getStudentInfo(const std::string& groupName, const std::string& studentID) {
+        return markBook[groupName][studentID].first;
+    }
+
+    void saveToFile(const std::string& filename) {
+        std::ofstream outputFile(filename);
+        if (!outputFile.is_open()) {
+            std::cerr << "Не удалось открыть файл для записи: " << filename << std::endl;
+            return;
+        }
+
+        for (const auto& groupEntry : markBook) {
+            outputFile << "Группа: " << groupEntry.first << std::endl;
+            for (const auto& studentEntry : groupEntry.second) {
+                const StudentInfo& studentInfo = studentEntry.second.first;
+                outputFile << "  Студент (ID: " << studentEntry.first << "): "
+                           << studentInfo.surname << " " << studentInfo.name << " " << studentInfo.middlename
+                           << std::endl;
+
+                for (const auto& grade : studentEntry.second.second) {
+                    outputFile << "    " << grade.first << ": " << grade.second << std::endl;
+                }
+                outputFile << "  Средний балл: " << calculateAverageGrade(groupEntry.first, studentEntry.first) << std::endl;
+            }
+        }
+
+        outputFile.close();
+        std::cout << "Данные сохранены в файл " << filename << std::endl;
     }
 };
-//Инициализация статического члена класса (указатель на GradeBook)
-GradeBook* GradeBook::gradeBookInstance = nullptr;
 
+GradeBook* GradeBook::gradeBookInstance = nullptr;
 #endif //COURSEWORKOOP_MAGAZINERATINGS_H
