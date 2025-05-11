@@ -3,15 +3,8 @@
 #include <string>
 #include <memory>
 
-// Типы учебных нагрузок
-enum class WorkloadType {
-    LAB,
-    EXAM,
-    COURSE_PROJECT,
-    CREDIT
-};
+enum class WorkloadType { LAB, EXAM, COURSE_PROJECT, CREDIT /*зачет*/ };
 
-// Абстрактный класс учебной нагрузки
 class Workload {
 public:
     virtual ~Workload() = default;
@@ -19,7 +12,6 @@ public:
     virtual int getMark() const = 0;
 };
 
-// Конкретные реализации работ - лаба
 class LabWork : public Workload {
     int mark;
 public:
@@ -27,7 +19,7 @@ public:
     WorkloadType getType() const override { return WorkloadType::LAB; }
     int getMark() const override { return mark; }
 };
-//Экзамен
+
 class ExamWork : public Workload {
     int mark;
 public:
@@ -35,7 +27,7 @@ public:
     WorkloadType getType() const override { return WorkloadType::EXAM; }
     int getMark() const override { return mark; }
 };
-//курсовая
+
 class CourseProject : public Workload {
     int mark;
 public:
@@ -43,14 +35,13 @@ public:
     WorkloadType getType() const override { return WorkloadType::COURSE_PROJECT; }
     int getMark() const override { return mark; }
 };
-//Зачет
+
 class CreditWork : public Workload {
 public:
     WorkloadType getType() const override { return WorkloadType::CREDIT; }
-    int getMark() const override { return 0; } // Зачет не влияет на оценку
+    int getMark() const override { return 0; }
 };
 
-// Абстрактная фабрика
 class WorkloadFactory {
 public:
     virtual ~WorkloadFactory() = default;
@@ -60,7 +51,6 @@ public:
     virtual std::unique_ptr<Workload> createCredit() = 0;
 };
 
-// Фабрика для технических специальностей (Только ИИТУС к примеру)
 class TechnicalWorkloadFactory : public WorkloadFactory {
 public:
     std::unique_ptr<Workload> createLab(int mark) override {
