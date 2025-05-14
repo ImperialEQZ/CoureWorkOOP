@@ -28,12 +28,12 @@ int main() {
             {"middlename", "Sergeevich"},
             {"grades", json::object()}
     };
-    BORCHENKO["grades"]["IO"] = {{"type", "Exam"}, {"mark", 5}};
-    BORCHENKO["grades"]["VichMath"] = {{"type", "Laboratory"}, {"mark", 4}};
-    BORCHENKO["grades"]["FOPI"] = {{"type", "Laboratory"}, {"mark", 3}};
-    BORCHENKO["grades"]["OOP"] = {{"type", "Credit"}, {"mark", 0}};
-    BORCHENKO["grades"]["EEiS"] = {{"type", "Laboratory"}, {"mark", 5}};
-    BORCHENKO["grades"]["Gardening"] = {{"type", "Coursework"}, {"mark", 4}};
+    BORCHENKO["grades"]["IO"] = {{"type", "exam"}, {"mark", 5}};
+    BORCHENKO["grades"]["VichMath"] = {{"type", "laboratory"}, {"mark", 4}};
+    BORCHENKO["grades"]["FOPI"] = {{"type", "laboratory"}, {"mark", 3}};
+    BORCHENKO["grades"]["OOP"] = {{"type", "credit"}, {"mark", 0}};
+    BORCHENKO["grades"]["EEiS"] = {{"type", "laboratory"}, {"mark", 5}};
+    BORCHENKO["grades"]["Gardening"] = {{"type", "coursework"}, {"mark", 4}};
 
     VT232["students"].push_back(BORCHENKO);
 
@@ -45,11 +45,11 @@ int main() {
             {"middlename", "Vladimirovich"},
             {"grades", json::object()}
     };
-    ABOBOVICH["grades"]["OP"] = {{"type", "Exam"}, {"mark", 4}};
-    ABOBOVICH["grades"]["Astrology"] = {{"type", "Laboratory"}, {"mark", 3}};
-    ABOBOVICH["grades"]["computer science"] = {{"type", "Credit"}, {"mark", 0}};
-    ABOBOVICH["grades"]["OOP"] = {{"type", "Coursework"}, {"mark", 3}};
-    ABOBOVICH["grades"]["potions"] = {{"type", "Laboratory"}, {"mark", 3}};
+    ABOBOVICH["grades"]["OP"] = {{"type", "exam"}, {"mark", 4}};
+    ABOBOVICH["grades"]["Astrology"] = {{"type", "laboratory"}, {"mark", 3}};
+    ABOBOVICH["grades"]["computer science"] = {{"type", "credit"}, {"mark", 0}};
+    ABOBOVICH["grades"]["OOP"] = {{"type", "coursework"}, {"mark", 3}};
+    ABOBOVICH["grades"]["potions"] = {{"type", "laboratory"}, {"mark", 3}};
     VT232["students"].push_back(ABOBOVICH);
 
     // Студент номер 3 ПВ-233
@@ -60,11 +60,11 @@ int main() {
             {"middlename", "Dimonovich"},
             {"grades", json::object()}
     };
-    BOGDANYUS["grades"]["IO"] = {{"type", "Exam"}, {"mark", 5}};
-    BOGDANYUS["grades"]["VichMath"] = {{"type", "Laboratory"}, {"mark", 4}};
-    BOGDANYUS["grades"]["FOPI"] = {{"type", "Laboratory"}, {"mark", 3}};
-    BOGDANYUS["grades"]["OOP"] = {{"type", "Credit"}, {"mark", 0}};
-    BOGDANYUS["grades"]["EEiS"] = {{"type", "Laboratory"}, {"mark", 5}};
+    BOGDANYUS["grades"]["IO"] = {{"type", "exam"}, {"mark", 5}};
+    BOGDANYUS["grades"]["VichMath"] = {{"type", "laboratory"}, {"mark", 4}};
+    BOGDANYUS["grades"]["FOPI"] = {{"type", "laboratory"}, {"mark", 3}};
+    BOGDANYUS["grades"]["OOP"] = {{"type", "credit"}, {"mark", 0}};
+    BOGDANYUS["grades"]["EEiS"] = {{"type", "laboratory"}, {"mark", 5}};
     //Добавление студента в группу
     PV233["students"].push_back(BOGDANYUS);
 
@@ -78,6 +78,42 @@ int main() {
     data["institutes"].push_back(IITUS);
 
 
+    //Второй институт - институт энергетики
+    json IEIE = {{"name", "IEIE"}, {"departments", json::array()}};
+
+    // Кафедра: Электроэнергетика и электротехника группа ЭиЭ-231
+    json Energy = {{"name", "Electricity and electrical engineering"}, {"groups", json::array()}};
+    json EiE231 = {{"name", "EiE-231"}, {"students", json::array()}};
+    json PETROV = {{"id", "67890569"},
+                   {"surname", "Petrov"},
+                   {"name", "Ivan"},
+                   {"middlename", "Ivanovich"},
+                   {"grades", json::object()}};
+
+    PETROV["grades"]["Electricity"] = {{"type", "exam"}, {"mark", 3}};
+    PETROV["grades"]["Welding"] = {{"type", "coursework"}, {"mark", 4}};
+
+    EiE231["students"].push_back(PETROV);
+    Energy["groups"].push_back(EiE231);
+    IEIE["departments"].push_back(Energy);
+
+    // Кафедра: Теплоэнергетика и теплотехника группа ТиТ-232
+    json Heat = {{"name", "Heat power engineering and heat engineering"}, {"groups", json::array()}};
+    json TIT232 = {{"name", "TiT-232"}, {"students", json::array()}};
+
+    json SIDOROV = {{"id", "1357978936"},
+                    {"surname", "Sidorov"},
+                    {"name", "Stepan"},
+                    {"middlename", "Sergeevich"},
+                    {"grades", json::object()}};
+
+    SIDOROV["grades"]["Ternod"] = {{"type", "exam"}, {"mark", 5}};
+
+    TIT232["students"].push_back(SIDOROV);
+    Heat["groups"].push_back(TIT232);
+    IEIE["departments"].push_back(Heat);
+
+    data["institutes"].push_back(IEIE);
 
     std::ofstream("data.json") << data.dump(4);
     std::cout << "Test data created in data.json\n";
