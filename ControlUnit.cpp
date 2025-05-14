@@ -97,7 +97,7 @@ void ControlUnit::selectGroup(const std::string& institute, const std::string& d
     } else { // Институт ИЭИЭ
         if (department == "Electricity and electrical engineering") {
             std::cout << "1. EiE-231\n2. EiE-232\n";//Две группы ЭиЭ
-            groups = {"EK-231", "EK-232"};
+            groups = {"EiE-231", "EiE-232"};
         } else if (department == "Heat power engineering and heat engineering") {
             std::cout << "1. TiT-231\n2. TiT-232\n";//Две группы ТиТ
             groups = {"TiT-231", "TiT-232"};
@@ -184,4 +184,95 @@ void ControlUnit::studentOperations(const std::string& institute, const std::str
                 std::cout << "Incorrect input.\n";
         }
     }
+}
+
+void ControlUnit::changeGrade(const std::string& institute, const std::string& department,
+                              const std::string& group, const std::string& studentId) {
+    // Получаем информацию о студенте
+    json studentInfo = gradeBook->getStudentInfo(institute, department, group, studentId);
+
+    std::string subject;//Название предмета
+    std::string workloadTypeStr;//Тип работы в виде строки
+    int mark;//Оценка
+
+    // Выводим список предметов студента
+    std::cout << "\nList of subject:\n";
+    for (auto& [subj, grade] : studentInfo["grades"].items()) {
+        std::cout << "- " << subj << "\n";
+    }
+    //Пользователь должен написать название предмета
+    std::cout << "\nWrite name subject: ";
+    std::getline(std::cin, subject);
+
+    // Проверяем, есть ли такой предмет у студента, нет - Ошибка: не найден
+    if (!studentInfo["grades"].contains(subject)) {
+        std::cout << "Error: subject not found!\n";
+        return;
+    }
+
+    // Получаем текущий тип работы для написанного предмета
+    std::string currentType = studentInfo["grades"][subject]["type"].get<std::string>();
+    //Текущий тип работы выбранного предмета (подсказка для пользователя)
+    std::cout << "Current type work: " << currentType << "\n";
+    std::cout << "Type work (1 - exam, 2 - laboratory, 3 - coursework, 4 - credit): ";
+    std::getline(std::cin, workloadTypeStr);
+
+    //Выбор вида нагрузки
+    WorkloadType newType;
+    if (workloadTypeStr == "1") newType = WorkloadType::EXAM;
+    else if (workloadTypeStr == "2") newType = WorkloadType::LAB;
+    else if (workloadTypeStr == "3") newType = WorkloadType::COURSE_PROJECT;
+    else if (workloadTypeStr == "4") newType = WorkloadType::CREDIT;
+    else {
+        std::cout << "Error: enter 1-4!\n";
+        return;
+    }
+
+    // Преобразуем newType в строку для сравнения
+    std::string newTypeStr;
+    switch(newType) {
+        case WorkloadType::EXAM: newTypeStr = "exam"; break;
+        case WorkloadType::LAB: newTypeStr = "laboratory"; break;
+        case WorkloadType::COURSE_PROJECT: newTypeStr = "coursework"; break;
+        case WorkloadType::CREDIT: newTypeStr = "credit"; break;
+    }
+
+    // Сравниваем типы (если пользователь ошибся - выводим текущий тип нагрузки у предмета)
+    if (currentType != newTypeStr) {
+        std::cout << "Error: subject " << subject
+                  << " is not a type of work " << newTypeStr << "!\n";
+        std::cout << "Current type of work: " << currentType << "\n";
+        return;
+    }
+
+    // Если типы нагрузки совпадают, продолжаем изменение оценки
+    if (newType != WorkloadType::CREDIT) {//У зачета не важна оценка = не меняем
+        std::cout << "New grade (2-5): ";
+        std::cin >> mark;
+        if (mark < 2 || mark > 5) {
+            std::cout << "Incorrect grade!\n";
+            return;
+        }
+    } else {
+        mark = 0; // Для зачета
+    }
+    std::cin.ignore();
+
+    // Обновляем оценку
+    TechnicalWorkloadFactory factory;
+    std::unique_ptr<Workload> workload;
+    switch(newType) {
+        case WorkloadType::LAB: workload = factory.createLab(mark); break;
+        case WorkloadType::EXAM: workload = factory.createExam(mark); break;
+        case WorkloadType::COURSE_PROJECT: workload = factory.createCourseProject(mark); break;
+        case WorkloadType::CREDIT: workload = factory.createCredit(); break;
+    }
+
+    gradeBook->addGrade(institute, department, group, studentId, subject, newType, workload->getMark());
+    std::cout << "Grade has been changed!\n";
+}
+
+void ControlUnit::displayAverageGrade(const std::string& studentId) {
+    double average = gradeBook->calculateAverage(studentId);
+    std::cout << "Average score: " << average << "\n";
 }
