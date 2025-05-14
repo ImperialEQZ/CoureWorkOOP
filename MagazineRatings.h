@@ -85,7 +85,37 @@ public:
             throw; // Перебрасываем исключение дальше
         }
     }
+    //вычисление среднего значения
+    double calculateAverage(const std::string& studentId) {
+        for (auto& inst : data["institutes"]) {
+            for (auto& dep : inst["departments"]) {
+                for (auto& grp : dep["groups"]) {
+                    for (auto& student : grp["students"]) {
+                        if (student["id"] == studentId) {
+                            double sum = 0;
+                            int count = 0;
+                            for (auto& [subject, grade] : student["grades"].items()) {
+                                std::string type = grade["type"].get<std::string>();
+                                int mark = grade["mark"].get<int>();
+                                if (type != "Credit") { // Игнорирование зачета
+                                    sum += mark;
+                                    count++;
+                                }
+                            }
+                            return count > 0 ? sum / count : 0.0;
+                        }
+                    }
+                }
+            }
+        }
+        return 0.0;
+    }
 
+    // Метод для получения списка studentId
+    std::vector<std::string> getStudentIds(const std::string& institute, const std::string& department, const std::string& group);
+
+    // Метод для получения информации о студенте
+    json getStudentInfo(const std::string& institute, const std::string& department, const std::string& group, const std::string& studentId);
 };
 
 GradeBook* GradeBook::instance = nullptr;
