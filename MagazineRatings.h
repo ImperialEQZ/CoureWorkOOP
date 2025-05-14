@@ -38,11 +38,12 @@ public:
         if (!instance) instance = new GradeBook();
         return instance;
     }
-
+    //Сохранение данных в JSON файл
     void saveData() {
         std::ofstream("data.json") << data.dump(4);
         std::cout << "Data saved in data.json.\n";
     }
+    //Добавление оценки студенту (+ тип нагрузки предмета)
     void addGrade(const std::string& institute,
                   const std::string& department,
                   const std::string& group,
@@ -59,7 +60,7 @@ public:
                 case WorkloadType::COURSE_PROJECT: typeStr = "course"; break;
                 case WorkloadType::CREDIT: typeStr = "credit"; break;
             }
-
+            //проходимся - находим нужного студента, добавляем тип работы и оценку
             for (auto& inst : data["institutes"]) {
                 if (inst["name"] == institute) {
                     for (auto& dep : inst["departments"]) {
@@ -69,7 +70,7 @@ public:
                                     for (auto& student : grp["students"]) {
                                         if (student["id"] == studentId) {
                                             student["grades"][subject] = {{"type", typeStr}, {"mark", mark}};
-                                            saveData();
+                                            saveData();//Сохраняем данные в файл
                                             return;
                                         }
                                     }
@@ -79,9 +80,9 @@ public:
                     }
                 }
             }
-            std::cerr << "Error: element not found!\n";
+            std::cerr << "Error: element not found!\n";//Если не найдено что-либо
         } catch (const std::exception& e) {
-            std::cerr << "JSON error: " << e.what() << "\n";
+            std::cerr << "JSON error: " << e.what() << "\n";//Ошибка JSON файла
             throw; // Перебрасываем исключение дальше
         }
     }
@@ -110,7 +111,6 @@ public:
         }
         return 0.0;
     }
-
     // Метод для получения списка studentId
     std::vector<std::string> getStudentIds(const std::string& institute, const std::string& department, const std::string& group);
 
