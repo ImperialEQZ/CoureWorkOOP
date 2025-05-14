@@ -185,7 +185,7 @@ void ControlUnit::studentOperations(const std::string& institute, const std::str
         }
     }
 }
-
+//Изменение оценок по предмету
 void ControlUnit::changeGrade(const std::string& institute, const std::string& department,
                               const std::string& group, const std::string& studentId) {
     // Получаем информацию о студенте
@@ -271,8 +271,33 @@ void ControlUnit::changeGrade(const std::string& institute, const std::string& d
     gradeBook->addGrade(institute, department, group, studentId, subject, newType, workload->getMark());
     std::cout << "Grade has been changed!\n";
 }
-
+//Вывод среднего арифметического оценок
 void ControlUnit::displayAverageGrade(const std::string& studentId) {
     double average = gradeBook->calculateAverage(studentId);
     std::cout << "Average score: " << average << "\n";
+}
+//Вывод полной информации о студенте
+void ControlUnit::displayStudentInfo(const std::string& institute, const std::string& department, const std::string& group, const std::string& studentId) {
+    // Получаем информацию о студенте из GradeBook (MagazineRatings)
+    json studentInfo = gradeBook->getStudentInfo(institute, department, group, studentId);
+    //Студент не найден
+    if (studentInfo.empty()) {
+        std::cout << "Student not found.\n";
+        return;
+    }
+    //Вывод информации
+    //ФИО
+    std::cout << "FULL NAME: " << studentInfo["surname"].get<std::string>() << " " << studentInfo["name"].get<std::string>() << " " << studentInfo["middlename"].get<std::string>() << "\n";
+    //Группа
+    std::cout << "Group: " << group << "\n";
+    //Номер зачетной книжки
+    std::cout << "Credit book number: " << studentId << "\n";
+    //Оценки по предметам (с названием предмета и его типом работы, нагрузки)
+    std::cout << "\nGrades:\n";
+    // Используем итератор для обхода оценок
+    for (auto it = studentInfo["grades"].begin(); it != studentInfo["grades"].end(); ++it) {
+        std::string subject = it.key();
+        json gradeData = it.value();
+        std::cout << "  " << subject << ": " << gradeData["mark"].get<int>() << " (" << gradeData["type"].get<std::string>() << ")\n";
+    }
 }
