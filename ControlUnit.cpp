@@ -186,89 +186,98 @@ void ControlUnit::studentOperations(const std::string& institute, const std::str
     }
 }
 //Изменение оценок по предмету
-void ControlUnit::changeGrade(const std::string& institute, const std::string& department,
-                              const std::string& group, const std::string& studentId) {
+//Модернизировано - возможность изменять у предмета тип учебной нагрузки
+//Сделано под фабричный метод, а не абстрактную фабрику
+void ControlUnit::changeGrade(const std::string& institute,
+                              const std::string& department,
+                              const std::string& group,
+                              const std::string& studentId) {
     // Получаем информацию о студенте
     json studentInfo = gradeBook->getStudentInfo(institute, department, group, studentId);
 
-    std::string subject;//Название предмета
-    std::string workloadTypeStr;//Тип работы в виде строки
-    int mark;//Оценка
+    // Проверяем, найден ли студент
+    if (studentInfo.empty()) {
+        std::cout << "Error: Student not found!\n";
+        return;
+    }
 
     // Выводим список предметов студента
-    std::cout << "\nList of subject:\n";
-    for (auto& [subj, grade] : studentInfo["grades"].items()) {
-        std::cout << "- " << subj << "\n";
+    std::cout << "\nCurrent subjects and grades:\n";
+    for (auto& [subject, grade] : studentInfo["grades"].items()) {
+        std::cout << "- " << subject << ": "
+                  << grade["mark"].get<int>()
+                  << " (" << grade["type"].get<std::string>() << ")\n";
     }
-    //Пользователь должен написать название предмета
-    std::cout << "\nWrite name subject: ";
+
+    // Запрашиваем у пользователя предмет для изменения
+    std::string subject;
+    std::cout << "\nEnter subject name to change: ";
     std::getline(std::cin, subject);
 
-    // Проверяем, есть ли такой предмет у студента, нет - Ошибка: не найден
+    // Проверяем существование предмета
     if (!studentInfo["grades"].contains(subject)) {
-        std::cout << "Error: subject not found!\n";
+        std::cout << "Error: Subject not found!\n";
         return;
     }
 
-    // Получаем текущий тип работы для написанного предмета
+    // Получаем текущий тип нагрузки
     std::string currentType = studentInfo["grades"][subject]["type"].get<std::string>();
-    //Текущий тип работы выбранного предмета (подсказка для пользователя)
-    std::cout << "Current type work: " << currentType << "\n";
-    std::cout << "Type work (1 - exam, 2 - laboratory, 3 - coursework, 4 - credit): ";
-    std::getline(std::cin, workloadTypeStr);
+    int currentMark = studentInfo["grades"][subject]["mark"].get<int>();
 
-    //Выбор вида нагрузки
+    // Запрашиваем новый тип нагрузки (если пользователь хочет изменить)
+    std::cout << "\nCurrent workload type: " << currentType
+              << "\nDo you want to keep the current type? (y/n): ";//y - оставить тип, n - поменять на другой
+    char choice;
+    std::cin >> choice;
+    std::cin.ignore();
+    //Новый тип
     WorkloadType newType;
-    if (workloadTypeStr == "1") newType = WorkloadType::EXAM;
-    else if (workloadTypeStr == "2") newType = WorkloadType::LAB;
-    else if (workloadTypeStr == "3") newType = WorkloadType::COURSE_PROJECT;
-    else if (workloadTypeStr == "4") newType = WorkloadType::CREDIT;
-    else {
-        std::cout << "Error: enter 1-4!\n";
-        return;
-    }
+    if (choice == 'n' || choice == 'N') {
+        std::cout << "Select new workload type:\n"
+                  << "1. exam\n2. laboratory\n3. coursework\n4. credit\n";
+        int typeChoice;
+        std::cin >> typeChoice;
+        std::cin.ignore();
 
-    // Преобразуем newType в строку для сравнения
-    std::string newTypeStr;
-    switch(newType) {
-        case WorkloadType::EXAM: newTypeStr = "exam"; break;
-        case WorkloadType::LAB: newTypeStr = "laboratory"; break;
-        case WorkloadType::COURSE_PROJECT: newTypeStr = "coursework"; break;
-        case WorkloadType::CREDIT: newTypeStr = "credit"; break;
-    }
-
-    // Сравниваем типы (если пользователь ошибся - выводим текущий тип нагрузки у предмета)
-    if (currentType != newTypeStr) {
-        std::cout << "Error: subject " << subject
-                  << " is not a type of work " << newTypeStr << "!\n";
-        std::cout << "Current type of work: " << currentType << "\n";
-        return;
-    }
-
-    // Если типы нагрузки совпадают, продолжаем изменение оценки
-    if (newType != WorkloadType::CREDIT) {//У зачета не важна оценка = не меняем
-        std::cout << "New grade (2-5): ";
-        std::cin >> mark;
-        if (mark < 2 || mark > 5) {
-            std::cout << "Incorrect grade!\n";
-            return;
+        switch (typeChoice) {
+            case 1: newType = WorkloadType::EXAM; break;
+            case 2: newType = WorkloadType::LAB; break;
+            case 3: newType = WorkloadType::COURSE_PROJECT; break;
+            case 4: newType = WorkloadType::CREDIT; break;
+            default:
+                std::cout << "Invalid choice. Keeping current type.\n";//Если неверный тип - сохраняем старый
+                newType = static_cast<WorkloadType>(studentInfo["grades"][subject]["type"].get<int>());
         }
     } else {
-        mark = 0; // Для зачета
-    }
-    std::cin.ignore();
-
-    // Обновляем оценку
-    TechnicalWorkloadFactory factory;
-    std::unique_ptr<Workload> workload;
-    switch(newType) {
-        case WorkloadType::LAB: workload = factory.createLab(mark); break;
-        case WorkloadType::EXAM: workload = factory.createExam(mark); break;
-        case WorkloadType::COURSE_PROJECT: workload = factory.createCourseProject(mark); break;
-        case WorkloadType::CREDIT: workload = factory.createCredit(); break;
+        // Преобразуем строковый тип в enum
+        if (currentType == "exam") newType = WorkloadType::EXAM;
+        else if (currentType == "laboratory") newType = WorkloadType::LAB;
+        else if (currentType == "coursework") newType = WorkloadType::COURSE_PROJECT;
+        else newType = WorkloadType::CREDIT;
     }
 
-    gradeBook->addGrade(institute, department, group, studentId, subject, newType, workload->getMark());
+    // Запрашиваем новую оценку (не на зачет, его игнорируем)
+    int newMark = currentMark;
+    if (newType != WorkloadType::CREDIT) {
+        std::cout << "Enter new grade (2-5): ";
+        std::cin >> newMark;
+        std::cin.ignore();
+
+        if (newMark < 2 || newMark > 5) {
+            std::cout << "Invalid grade. Keeping current grade.\n";//если некорректная оценка - оставляем старую
+            newMark = currentMark;
+        }
+    } else {
+        newMark = 0; // Для зачета оценка всегда 0
+    }
+
+    // Создаем объект нагрузки через фабричный метод
+    std::unique_ptr<Workload> workload = Workload::createWorkload(newType, newMark);
+
+    // Обновляем оценку в журнале
+    gradeBook->addGrade(institute, department, group, studentId,
+                        subject, newType, workload->getMark());
+
     std::cout << "Grade has been changed!\n";
 }
 //Вывод среднего арифметического оценок
