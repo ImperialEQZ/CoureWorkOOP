@@ -34,6 +34,57 @@ private:
     }
 
 public:
+    static GradeBook* getInstance() {
+        if (!instance) instance = new GradeBook();
+        return instance;
+    }
+
+    void saveData() {
+        std::ofstream("data.json") << data.dump(4);
+        std::cout << "Data saved in data.json.\n";
+    }
+    void addGrade(const std::string& institute,
+                  const std::string& department,
+                  const std::string& group,
+                  const std::string& studentId,
+                  const std::string& subject,
+                  WorkloadType workloadType,
+                  int mark) {
+
+        try {
+            std::string typeStr;
+            switch(workloadType) {
+                case WorkloadType::EXAM: typeStr = "exam"; break;
+                case WorkloadType::LAB: typeStr = "lab"; break;
+                case WorkloadType::COURSE_PROJECT: typeStr = "course"; break;
+                case WorkloadType::CREDIT: typeStr = "credit"; break;
+            }
+
+            for (auto& inst : data["institutes"]) {
+                if (inst["name"] == institute) {
+                    for (auto& dep : inst["departments"]) {
+                        if (dep["name"] == department) {
+                            for (auto& grp : dep["groups"]) {
+                                if (grp["name"] == group) {
+                                    for (auto& student : grp["students"]) {
+                                        if (student["id"] == studentId) {
+                                            student["grades"][subject] = {{"type", typeStr}, {"mark", mark}};
+                                            saveData();
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            std::cerr << "Error: element not found!\n";
+        } catch (const std::exception& e) {
+            std::cerr << "JSON error: " << e.what() << "\n";
+            throw; // Перебрасываем исключение дальше
+        }
+    }
 
 };
 
