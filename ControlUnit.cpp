@@ -122,4 +122,66 @@ void ControlUnit::selectGroup(const std::string& institute, const std::string& d
     std::string group = groups[groupChoice - 1];
     selectStudent(institute, department, group);
 }
+//Выбор студента из группы (в группе может быть несколько студентов)
+void ControlUnit::selectStudent(const std::string& institute, const std::string& department, const std::string& group) {
+    std::vector<std::string> studentIds = gradeBook->getStudentIds(institute, department, group);
 
+    if (studentIds.empty()) {
+        std::cout << "No students in the group.\n";
+        return;
+    }
+
+    std::cout << "\nStudents:\n";
+    for (size_t i = 0; i < studentIds.size(); ++i) {
+        // Получаем информацию о студенте для отображения ФИО
+        json studentInfo = gradeBook->getStudentInfo(institute, department, group, studentIds[i]);
+        if (!studentInfo.empty()) {
+            std::cout << i + 1 << ". " << studentInfo["surname"].get<std::string>() << " "
+                      << studentInfo["name"].get<std::string>() << " "
+                      << studentInfo["middlename"].get<std::string>()
+                      << " (ID: " << studentIds[i] << ")" << "\n";
+        } else {
+            std::cout << i + 1 << ". (Error: Student information not found) (ID: " << studentIds[i] << ")\n";
+        }
+    }
+    //Выбор студента из группы
+    int studentChoice;
+    std::cout << "Select a student (1-" << studentIds.size() << "): ";
+    std::cin >> studentChoice;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    //Если нет людей в группе или неккоректный выбор студента
+    if (studentChoice < 1 || studentChoice > studentIds.size()) {
+        std::cout << "Incorrect input.\n";
+        return;
+    }
+
+    std::string studentId = studentIds[studentChoice - 1];
+    studentOperations(institute, department, group, studentId);
+}
+//Операция над студентом (изменить оценку, посчитать средний балл, получить всю информацию о студенте)
+void ControlUnit::studentOperations(const std::string& institute, const std::string& department, const std::string& group, const std::string& studentId) {
+    while (true) {
+        std::cout << "\nStudent operations (ID: " << studentId << "):\n";
+        std::cout << "1. Change grade\n2. Get grade average\n3. Get information about student\n4. Back\n";
+
+        int choice;
+        std::cin >> choice;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        switch (choice) {
+            case 1:
+                changeGrade(institute, department, group, studentId);
+                break;
+            case 2:
+                displayAverageGrade(studentId);
+                break;
+            case 3:
+                displayStudentInfo(institute, department, group, studentId);
+                break;
+            case 4:
+                return;
+            default:
+                std::cout << "Incorrect input.\n";
+        }
+    }
+}
