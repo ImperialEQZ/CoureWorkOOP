@@ -25,7 +25,7 @@ std::vector<std::string> GradeBook::getStudentIds(const std::string& institute, 
     }
     return studentIds; // Возвращаем пустой список, если не найдено
 }
-
+//Получить информацию о студенте
 json GradeBook::getStudentInfo(const std::string& institute, const std::string& department, const std::string& group, const std::string& studentId) {
     for (auto& inst : data["institutes"]) {
         if (inst["name"] == institute) {
@@ -46,4 +46,3 @@ json GradeBook::getStudentInfo(const std::string& institute, const std::string& 
     }
     return json{}; // Возвращаем пустой JSON-объект, если не найдено ничего
 }
-

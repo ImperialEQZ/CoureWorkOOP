@@ -21,7 +21,7 @@ private:
     //Меню институтов
     void instituteMenu() {
         //1) ИИТУС 2) ИЭИЭ
-        std::cout << "\nInstitutions:\n1. IITUS\n2. IEEI\n3. Back\n";
+        std::cout << "\nInstitutions:\n1. IITUS\n2. IEIE\n3. Back\n";
     }
     //Меню кафедр
     void departmentMenu(const std::string& institute) {

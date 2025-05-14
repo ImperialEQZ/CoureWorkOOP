@@ -34,6 +34,7 @@ private:
     }
 
 public:
+    //Реализация паттерна одиночка (синглтон)
     static GradeBook* getInstance() {
         if (!instance) instance = new GradeBook();
         return instance;
@@ -98,7 +99,7 @@ public:
                             for (auto& [subject, grade] : student["grades"].items()) {
                                 std::string type = grade["type"].get<std::string>();
                                 int mark = grade["mark"].get<int>();
-                                if (type != "Credit") { // Игнорирование зачета
+                                if (type != "credit") { // Игнорирование зачета
                                     sum += mark;
                                     count++;
                                 }

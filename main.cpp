@@ -1,12 +1,10 @@
 #include <iostream>
-#include <windows.h>
 #include "ControlUnit.h"
 #include "ControlUnit.cpp"
 #include "MagazineRatings.h"
 #include "MagazineRatings.cpp"
 
 int main() {
-    SetConsoleOutputCP(CP_UTF8);
     json data;
 
     data["institutes"] = json::array();
