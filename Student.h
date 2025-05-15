@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "Grade.h"
+
 //Создание класса студент
 class Student {
 public:
@@ -28,27 +29,20 @@ public:
     double getAverageRating() const {
         if (grades.empty()) return 0;
         double sum = 0.0;//Для точности
+        int count = 0;
         for (const auto& grade : grades) {
-            sum += grade.mark;
+            if (grade.type != WorkloadType::CREDIT) { // Исключаем зачеты, доработка старой функции
+                sum += grade.mark;
+                count++;
+            }
         }
-        return sum / grades.size();
+        return (count > 0) ? (sum / count) : 0.0;
     }
-
+    //Вывод информации о студенте
     void outputStudentInfo() const {
-        std::cout << "ФИО: " << Name << " " << SurName << " " << MiddleName << std::endl;
-        std::cout << "Группа: " << GroupName << std::endl;
-        std::cout << "Номер зачетной книжки: " << NumberCreditBook << std::endl;
-    }
-
-    void outputGrades() const {
-        if (grades.empty()) {
-            std::cout << "У студента нет оценок." << std::endl;
-            return;
-        }
-        std::cout << "Оценки студента:" << std::endl;
-        for (const auto& grade : grades) {
-            grade.outputGrade();
-        }
+        std::cout << "FULL NAME: " << Name << " " << SurName << " " << MiddleName << std::endl;
+        std::cout << "Group: " << GroupName << std::endl;
+        std::cout << "Credit book number: " << NumberCreditBook << std::endl;
     }
 };
 #endif //COURSEWORKOOP_STUDENT_H
