@@ -1,120 +1,91 @@
-#include <iostream>
 #include "ControlUnit.h"
-#include "ControlUnit.cpp"
 #include "MagazineRatings.h"
-#include "MagazineRatings.cpp"
+#include "Student.h"
+#include "StudentFactory.h"
 
 int main() {
-    json data;
+    GradeBook* gradeBook = GradeBook::getInstance();
 
-    data["institutes"] = json::array();
+    // Создание институтов (ИИТУС, ИЭИЭ)
+    Institute IITUS("IITUS");
+    Institute IEIE("IEIE");
 
-    // Создаем ИИТУС, ПОВТАС (2 студента в ВТ-232 и  1 в ПВ-233)
-    //Массив института
-    json IITUS = {{"name", "IITUS"}, {"departments", json::array()}};
-    //Массив кафедры
-    json POVTAS = {{"name", "POVTAS"}, {"groups", json::array()}};
-    //Массив 2 разных групп со стулентами
-    json VT232 = {{"name", "VT-232"}, {"students", json::array()}};
-    json PV233 = {{"name", "PV-233"}, {"students", json::array()}};
+    // Создание кафедр
+    Department POVTAS("POVTAS");
+    Department IT("IT");
+    Department Energy("Electricity and electrical engineering");
+    Department Heat("Heat power engineering and heat engineering");
 
+    // Создание групп
+    Group VT232("VT-232");
+    Group PV233("PV-233");
+    Group EiE231("EiE-231");
+    Group TiT232("TiT-232");
+
+    // Создание студентов и добавление их в группы
     // Студент номер 1 ВТ-232
-    json BORCHENKO = {
-            {"id", "105233196"},
-            {"surname", "Borchenko"},
-            {"name", "Alexander"},
-            {"middlename", "Sergeevich"},
-            {"grades", json::object()}
-    };
-    BORCHENKO["grades"]["IO"] = {{"type", "exam"}, {"mark", 5}};
-    BORCHENKO["grades"]["VichMath"] = {{"type", "laboratory"}, {"mark", 4}};
-    BORCHENKO["grades"]["FOPI"] = {{"type", "laboratory"}, {"mark", 3}};
-    BORCHENKO["grades"]["OOP"] = {{"type", "credit"}, {"mark", 0}};
-    BORCHENKO["grades"]["EEiS"] = {{"type", "laboratory"}, {"mark", 5}};
-    BORCHENKO["grades"]["Gardening"] = {{"type", "coursework"}, {"mark", 4}};
-
-    VT232["students"].push_back(BORCHENKO);
-
+    Student BORCHENKO = StudentFactory::createStudent("IITUS", "POVTAS", "105233196", "VT-232", "Alexander", "Borchenko", "Sergeevich");
+    BORCHENKO.grades.push_back(Grade("FOPI", WorkloadType::EXAM, 5));
+    BORCHENKO.grades.push_back(Grade("VichMath", WorkloadType::LAB, 4));
+    BORCHENKO.grades.push_back(Grade("OOP", WorkloadType::LAB, 3));
+    BORCHENKO.grades.push_back(Grade("IO", WorkloadType::CREDIT, 0));
+    BORCHENKO.grades.push_back(Grade("EEiS", WorkloadType::LAB, 5));
+    BORCHENKO.grades.push_back(Grade("Gardening", WorkloadType::COURSE_PROJECT, 4));
+    VT232.addStudent(BORCHENKO);
     // Студент номер 2 ВТ-232
-    json ABOBOVICH = {
-            {"id", "88005553535"},
-            {"surname", "Abobovich"},
-            {"name", "Petr"},
-            {"middlename", "Vladimirovich"},
-            {"grades", json::object()}
-    };
-    ABOBOVICH["grades"]["OP"] = {{"type", "exam"}, {"mark", 4}};
-    ABOBOVICH["grades"]["Astrology"] = {{"type", "laboratory"}, {"mark", 3}};
-    ABOBOVICH["grades"]["computer science"] = {{"type", "credit"}, {"mark", 0}};
-    ABOBOVICH["grades"]["OOP"] = {{"type", "coursework"}, {"mark", 3}};
-    ABOBOVICH["grades"]["potions"] = {{"type", "laboratory"}, {"mark", 3}};
-    VT232["students"].push_back(ABOBOVICH);
-
+    Student ABOBOVICH = StudentFactory::createStudent("IITUS", "POVTAS", "88005553535", "VT-232", "Petr", "Abobovich", "Vladimirovich");
+    ABOBOVICH.grades.push_back(Grade("OP", WorkloadType::EXAM, 4));
+    ABOBOVICH.grades.push_back(Grade("Astrology", WorkloadType::LAB, 3));
+    ABOBOVICH.grades.push_back(Grade("computer science", WorkloadType::CREDIT, 0));
+    ABOBOVICH.grades.push_back(Grade("OOP", WorkloadType::COURSE_PROJECT, 3));
+    ABOBOVICH.grades.push_back(Grade("potions", WorkloadType::LAB, 3));
+    VT232.addStudent(ABOBOVICH);
     // Студент номер 3 ПВ-233
-    json BOGDANYUS = {
-            {"id", "11111111"},
-            {"surname", "Bogdanyus"},
-            {"name", "Bogdan"},
-            {"middlename", "Dimonovich"},
-            {"grades", json::object()}
-    };
-    BOGDANYUS["grades"]["IO"] = {{"type", "exam"}, {"mark", 5}};
-    BOGDANYUS["grades"]["VichMath"] = {{"type", "laboratory"}, {"mark", 4}};
-    BOGDANYUS["grades"]["FOPI"] = {{"type", "laboratory"}, {"mark", 3}};
-    BOGDANYUS["grades"]["OOP"] = {{"type", "credit"}, {"mark", 0}};
-    BOGDANYUS["grades"]["EEiS"] = {{"type", "laboratory"}, {"mark", 5}};
-    //Добавление студента в группу
-    PV233["students"].push_back(BOGDANYUS);
+    Student BOGDANYUS = StudentFactory::createStudent("IITUS", "POVTAS", "11111111", "PV-233", "Bogdan", "Bogdanyus", "Dimonovich");
+    BOGDANYUS.grades.push_back(Grade("IO", WorkloadType::EXAM, 5));
+    BOGDANYUS.grades.push_back(Grade("VichMath", WorkloadType::LAB, 4));
+    BOGDANYUS.grades.push_back(Grade("FOPI", WorkloadType::LAB, 3));
+    BOGDANYUS.grades.push_back(Grade("OOP", WorkloadType::CREDIT, 0));
+    BOGDANYUS.grades.push_back(Grade("EEiS", WorkloadType::LAB, 5));
+    PV233.addStudent(BOGDANYUS);
+    // Кафедра: Электроэнергетика и электротехника группа ЭиЭ-231, студент номер 4
+    Student PETROV = StudentFactory::createStudent("IEIE", "Electricity and electrical engineering", "67890569", "EiE-231", "Ivan", "Petrov", "Ivanovich");
+    PETROV.grades.push_back(Grade("Electricity", WorkloadType::EXAM, 3));
+    PETROV.grades.push_back(Grade("Welding", WorkloadType::COURSE_PROJECT, 4));
+    EiE231.addStudent(PETROV);
+    // Кафедра: Теплоэнергетика и теплотехника группа ТиТ-232, студент номер 5
+    Student SIDOROV = StudentFactory::createStudent("IEIE", "Heat power engineering and heat engineering", "1357978936", "TiT-232", "Stepan", "Sidorovich", "Sergeevich");
+    SIDOROV.grades.push_back(Grade("Ternod", WorkloadType::EXAM, 5));
+    TiT232.addStudent(SIDOROV);
 
-    // Собираем полную структуру теста
-    //Добавление групп в каведру
-    POVTAS["groups"].push_back(VT232);
-    POVTAS["groups"].push_back(PV233);
-    //Добавление кафедры в институт
-    IITUS["departments"].push_back(POVTAS);
-    //Добавление данных института
-    data["institutes"].push_back(IITUS);
+    // Добавление групп в кафедры
+    //ПОВТАС
+    POVTAS.addGroup(VT232);
+    POVTAS.addGroup(PV233);
+    //ЭиЭ
+    Energy.addGroup(EiE231);
+    //ТиТ
+    Heat.addGroup(TiT232);
 
+    // Добавление кафедр в институты
+    //ИИТУС
+    IITUS.addDepartment(POVTAS);
+    IITUS.addDepartment(IT);
+    //ИЭИЭ
+    IEIE.addDepartment(Energy);
+    IEIE.addDepartment(Heat);
 
-    //Второй институт - институт энергетики
-    json IEIE = {{"name", "IEIE"}, {"departments", json::array()}};
+    // Добавление институтов в журнал
+    gradeBook->addInstitute(IITUS);
+    gradeBook->addInstitute(IEIE);
 
-    // Кафедра: Электроэнергетика и электротехника группа ЭиЭ-231
-    json Energy = {{"name", "Electricity and electrical engineering"}, {"groups", json::array()}};
-    json EiE231 = {{"name", "EiE-231"}, {"students", json::array()}};
-    json PETROV = {{"id", "67890569"},
-                   {"surname", "Petrov"},
-                   {"name", "Ivan"},
-                   {"middlename", "Ivanovich"},
-                   {"grades", json::object()}};
+    /* Вывод информации об институтах (демонстрация всех данных)
+    std::cout << "\nInformation about institutions:\n";
+    IITUS.displayInstituteInfo();
+    IEIE.displayInstituteInfo();*/
 
-    PETROV["grades"]["Electricity"] = {{"type", "exam"}, {"mark", 3}};
-    PETROV["grades"]["Welding"] = {{"type", "coursework"}, {"mark", 4}};
-
-    EiE231["students"].push_back(PETROV);
-    Energy["groups"].push_back(EiE231);
-    IEIE["departments"].push_back(Energy);
-
-    // Кафедра: Теплоэнергетика и теплотехника группа ТиТ-232
-    json Heat = {{"name", "Heat power engineering and heat engineering"}, {"groups", json::array()}};
-    json TIT232 = {{"name", "TiT-232"}, {"students", json::array()}};
-
-    json SIDOROV = {{"id", "1357978936"},
-                    {"surname", "Sidorov"},
-                    {"name", "Stepan"},
-                    {"middlename", "Sergeevich"},
-                    {"grades", json::object()}};
-
-    SIDOROV["grades"]["Ternod"] = {{"type", "exam"}, {"mark", 5}};
-
-    TIT232["students"].push_back(SIDOROV);
-    Heat["groups"].push_back(TIT232);
-    IEIE["departments"].push_back(Heat);
-
-    data["institutes"].push_back(IEIE);
-
-    std::ofstream("data.json") << data.dump(4);
-    std::cout << "Test data created in data.json\n";
+    // Сохранение данных
+    gradeBook->saveData();
 
     ControlUnit control;
     control.run();
