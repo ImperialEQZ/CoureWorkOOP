@@ -39,72 +39,76 @@ void ControlUnit::selectInstitute() {
 
     if (instChoice == 3) return;
 
-    std::string institute;
-    if (instChoice == 1) institute = "IITUS";
-    else if (instChoice == 2) institute = "IEIE";
+    std::string instituteName;
+    if (instChoice == 1) instituteName = "IITUS";
+    else if (instChoice == 2) instituteName = "IEIE";
     else {
         std::cout << "Incorrect input.\n";
         return;
     }
 
-    selectDepartment(institute);
+    selectDepartment(instituteName);
 }
 //В сумме 4 кафедры: ПОВТАС, ИТ, Электроэнергетика и электротехника, Теплоэнергетика и теплотехника
-void ControlUnit::selectDepartment(const std::string& institute) {
-    departmentMenu(institute);
+void ControlUnit::selectDepartment(const std::string& instituteName) {
+    departmentMenu(instituteName);
     int depChoice;
     std::cin >> depChoice;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     if (depChoice == 3) return;
 
-    std::string department;
-    //ИИТУС
-    if (institute == "IITUS") {
-        if (depChoice == 1) department = "POVTAS";//Легенда - кафедра
-        else if (depChoice == 2) department = "IT";//Кафедра Инф. технологий
+    std::string departmentName;
+    if (instituteName == "IITUS") {
+        if (depChoice == 1) departmentName = "POVTAS";
+        else if (depChoice == 2) departmentName = "IT";
         else {
             std::cout << "Incorrect input.\n";
             return;
         }
-    } else { // ИЭИЭ
-        if (depChoice == 1) department = "Electricity and electrical engineering";//ЭиЭ
-        else if (depChoice == 2) department = "Heat power engineering and heat engineering";//ТиТ
+    } else if (instituteName == "IEIE") {
+        if (depChoice == 1) departmentName = "Electricity and electrical engineering";
+        else if (depChoice == 2) departmentName = "Heat power engineering and heat engineering";
         else {
             std::cout << "Incorrect input.\n";
             return;
         }
+    } else {
+        std::cout << "Incorrect input.\n";
+        return;
     }
 
-    selectGroup(institute, department);
+    selectGroup(instituteName, departmentName);
 }
 //Выбор групп в разных институтах и кафедрах
-void ControlUnit::selectGroup(const std::string& institute, const std::string& department) {
+void ControlUnit::selectGroup(const std::string& instituteName, const std::string& departmentName) {
     std::cout << "\nGroups:\n";
-
-    std::vector<std::string> groups;
-    if (institute == "IITUS") {
-        if (department == "POVTAS") {
-            std::cout << "1. VT-232\n2. PV-233\n";//Две группы ПОВТАСа
-            groups = {"VT-232", "PV-233"};
-        } else if (department == "IT") {
-            std::cout << "1. IST-231\n2. IST-232\n"; ////Две группы ИТ
-            groups = {"IST-231", "IST-232"};
+    std::vector<std::string> groupNames;
+    if (instituteName == "IITUS") {
+        if (departmentName == "POVTAS") {
+            std::cout << "1. VT-232\n2. PV-233\n";
+            groupNames = {"VT-232", "PV-233"};
+        } else if (departmentName == "IT") {
+            std::cout << "1. IST-231\n2. IST-232\n";
+            groupNames = {"IST-231", "IST-232"};
         } else {
-            std::cout << "No groups for this department.\n";//Не найдена группа на кафедре
+            std::cout << "No groups for this department.\n";
             return;
         }
-    } else { // Институт ИЭИЭ
-        if (department == "Electricity and electrical engineering") {
-            std::cout << "1. EiE-231\n2. EiE-232\n";//Две группы ЭиЭ
-            groups = {"EiE-231", "EiE-232"};
-        } else if (department == "Heat power engineering and heat engineering") {
-            std::cout << "1. TiT-231\n2. TiT-232\n";//Две группы ТиТ
-            groups = {"TiT-231", "TiT-232"};
+    } else if (instituteName == "IEIE") {
+        if (departmentName == "Electricity and electrical engineering") {
+            std::cout << "1. EiE-231\n2. EiE-232\n";
+            groupNames = {"EiE-231", "EiE-232"};
+        } else if (departmentName == "Heat power engineering and heat engineering") {
+            std::cout << "1. TiT-231\n2. TiT-232\n";
+            groupNames = {"TiT-231", "TiT-232"};
         } else {
-            std::cout << "No groups for this department.\n";//Не найдена группа на кафедре
+            std::cout << "No groups for this department.\n";
             return;
         }
+    } else {
+        std::cout << "Incorrect input.\n";
+        return;
     }
     std::cout << "3. Back\n";
 
@@ -114,17 +118,17 @@ void ControlUnit::selectGroup(const std::string& institute, const std::string& d
 
     if (groupChoice == 3) return;
 
-    if (groupChoice < 1 || groupChoice > groups.size()) {
+    if (groupChoice < 1 || groupChoice > groupNames.size()) {
         std::cout << "Incorrect input.\n";
         return;
     }
 
-    std::string group = groups[groupChoice - 1];
-    selectStudent(institute, department, group);
+    std::string groupName = groupNames[groupChoice - 1];
+    selectStudent(instituteName, departmentName, groupName);
 }
 //Выбор студента из группы (в группе может быть несколько студентов)
-void ControlUnit::selectStudent(const std::string& institute, const std::string& department, const std::string& group) {
-    std::vector<std::string> studentIds = gradeBook->getStudentIds(institute, department, group);
+void ControlUnit::selectStudent(const std::string& instituteName, const std::string& departmentName, const std::string& groupName) {
+    std::vector<std::string> studentIds = gradeBook->getStudentIds(instituteName, departmentName, groupName);
 
     if (studentIds.empty()) {
         std::cout << "No students in the group.\n";
@@ -133,8 +137,7 @@ void ControlUnit::selectStudent(const std::string& institute, const std::string&
 
     std::cout << "\nStudents:\n";
     for (size_t i = 0; i < studentIds.size(); ++i) {
-        // Получаем информацию о студенте для отображения ФИО
-        json studentInfo = gradeBook->getStudentInfo(institute, department, group, studentIds[i]);
+        json studentInfo = gradeBook->getStudentInfo(instituteName, departmentName, groupName, studentIds[i]);
         if (!studentInfo.empty()) {
             std::cout << i + 1 << ". " << studentInfo["surname"].get<std::string>() << " "
                       << studentInfo["name"].get<std::string>() << " "
@@ -144,19 +147,19 @@ void ControlUnit::selectStudent(const std::string& institute, const std::string&
             std::cout << i + 1 << ". (Error: Student information not found) (ID: " << studentIds[i] << ")\n";
         }
     }
-    //Выбор студента из группы
+
     int studentChoice;
     std::cout << "Select a student (1-" << studentIds.size() << "): ";
     std::cin >> studentChoice;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    //Если нет людей в группе или неккоректный выбор студента
+
     if (studentChoice < 1 || studentChoice > studentIds.size()) {
         std::cout << "Incorrect input.\n";
         return;
     }
 
     std::string studentId = studentIds[studentChoice - 1];
-    studentOperations(institute, department, group, studentId);
+    studentOperations(instituteName, departmentName, groupName, studentId);
 }
 //Операция над студентом (изменить оценку, посчитать средний балл, получить всю информацию о студенте)
 void ControlUnit::studentOperations(const std::string& institute, const std::string& department, const std::string& group, const std::string& studentId) {
@@ -287,23 +290,20 @@ void ControlUnit::displayAverageGrade(const std::string& studentId) {
 }
 //Вывод полной информации о студенте
 void ControlUnit::displayStudentInfo(const std::string& institute, const std::string& department, const std::string& group, const std::string& studentId) {
-    // Получаем информацию о студенте из GradeBook (MagazineRatings)
     json studentInfo = gradeBook->getStudentInfo(institute, department, group, studentId);
-    //Студент не найден
+
     if (studentInfo.empty()) {
         std::cout << "Student not found.\n";
         return;
     }
-    //Вывод информации
-    //ФИО
-    std::cout << "FULL NAME: " << studentInfo["surname"].get<std::string>() << " " << studentInfo["name"].get<std::string>() << " " << studentInfo["middlename"].get<std::string>() << "\n";
-    //Группа
+
+    std::cout << "FULL NAME: " << studentInfo["surname"].get<std::string>() << " "
+              << studentInfo["name"].get<std::string>() << " "
+              << studentInfo["middlename"].get<std::string>() << "\n";
     std::cout << "Group: " << group << "\n";
-    //Номер зачетной книжки
     std::cout << "Credit book number: " << studentId << "\n";
-    //Оценки по предметам (с названием предмета и его типом работы, нагрузки)
     std::cout << "\nGrades:\n";
-    // Используем итератор для обхода оценок
+
     for (auto it = studentInfo["grades"].begin(); it != studentInfo["grades"].end(); ++it) {
         std::string subject = it.key();
         json gradeData = it.value();
